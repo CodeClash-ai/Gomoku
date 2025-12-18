@@ -7,6 +7,7 @@ Usage: python engine.py /path/to/player1.py /path/to/player2.py -r NUM_ROUNDS
 
 import argparse
 import importlib.util
+import json
 import os
 import random
 import sys
@@ -168,34 +169,33 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
 
 
 def write_game_log(game_num: int, result: dict, players: dict, player1_path: str, player2_path: str, output_dir: str = "."):
-    """Write a detailed log file for a single game."""
+    """Write a detailed log file for a single game in JSON format."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    log_filename = os.path.join(output_dir, f"log-{timestamp}.log")
+    json_filename = os.path.join(output_dir, f"log-{timestamp}.json")
     
-    with open(log_filename, 'w') as f:
-        # Write header with player assignments
-        f.write(f"=== Gomoku Game Log (Game #{game_num}) ===\n")
-        f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"\nPlayer Assignments:\n")
-        
-        for color in ["black", "white"]:
-            _, player_name = players[color]
-            player_path = player1_path if player_name == "player1" else player2_path
-            f.write(f"  {color.upper()}: {player_name} ({player_path})\n")
-        
-        f.write(f"\nResult: {result['winner']} wins\n")
-        
-        if "error" in result:
-            f.write(f"Error: {result['error']}\n")
-        
-        # Write move history
-        if "history" in result:
-            f.write(f"\nMove History ({len(result['history'])} moves):\n")
-            f.write("-" * 50 + "\n")
-            for i, (color, x, y) in enumerate(result["history"], 1):
-                f.write(f"Move {i:3d}: {color:5s} -> ({x:2d}, {y:2d})\n")
-        
-        f.write("\n" + "=" * 50 + "\n")
+    # Write JSON log for visualizer
+    json_data = {
+        "game_number": game_num,
+        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "board_size": 15,
+        "players": {
+            "black": {
+                "name": players["black"][1],
+                "path": player1_path if players["black"][1] == "player1" else player2_path
+            },
+            "white": {
+                "name": players["white"][1],
+                "path": player1_path if players["white"][1] == "player1" else player2_path
+            }
+        },
+        "winner": result["winner"],
+        "error": result.get("error"),
+        "moves": [{"move_number": i+1, "player": color, "x": x, "y": y} 
+                  for i, (color, x, y) in enumerate(result.get("history", []))]
+    }
+    
+    with open(json_filename, 'w') as f:
+        json.dump(json_data, f, indent=2)
 
 
 def main():
