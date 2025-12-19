@@ -9,7 +9,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from flask import Flask, render_template_string, jsonify, request
+from flask import Flask, render_template_string, jsonify
 
 app = Flask(__name__)
 
@@ -781,15 +781,15 @@ def main():
     LOGS_DIR = args.logs_dir
     
     print(f"\n{'='*60}")
-    print(f"🎮 Gomoku Game Visualizer")
+    print("🎮 Gomoku Game Visualizer")
     print(f"{'='*60}")
     print(f"\n📁 Logs directory: {os.path.abspath(LOGS_DIR)}")
     print(f"🌐 Server running at: http://localhost:{args.port}")
-    print(f"\n💡 Keyboard shortcuts:")
-    print(f"   ← → : Previous/Next move")
-    print(f"   Space: Play/Pause")
-    print(f"   Home/End: First/Last move")
-    print(f"   R: Reset to start")
+    print("\n💡 Keyboard shortcuts:")
+    print("   ← → : Previous/Next move")
+    print("   Space: Play/Pause")
+    print("   Home/End: First/Last move")
+    print("   R: Reset to start")
     print(f"\n{'='*60}\n")
     
     app.run(debug=True, port=args.port, host='0.0.0.0')
