@@ -19,6 +19,7 @@ from typing import Callable
 @dataclass
 class GomokuGame:
     """Represents a Gomoku game state."""
+
     board_size: int = 15
     board: list = field(default_factory=list)
     current_player: str = "black"
@@ -59,14 +60,22 @@ class GomokuGame:
 
             # Count in positive direction
             nx, ny = x + dx, y + dy
-            while 0 <= nx < self.board_size and 0 <= ny < self.board_size and self.board[nx][ny] == stone:
+            while (
+                0 <= nx < self.board_size
+                and 0 <= ny < self.board_size
+                and self.board[nx][ny] == stone
+            ):
                 count += 1
                 nx += dx
                 ny += dy
 
             # Count in negative direction
             nx, ny = x - dx, y - dy
-            while 0 <= nx < self.board_size and 0 <= ny < self.board_size and self.board[nx][ny] == stone:
+            while (
+                0 <= nx < self.board_size
+                and 0 <= ny < self.board_size
+                and self.board[nx][ny] == stone
+            ):
                 count += 1
                 nx -= dx
                 ny -= dy
@@ -102,8 +111,10 @@ def load_player_module(path: str) -> Callable:
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
 
-    if not hasattr(module, 'get_move'):
-        raise ValueError(f"Player module {path} must define a get_move(board, color) function")
+    if not hasattr(module, "get_move"):
+        raise ValueError(
+            f"Player module {path} must define a get_move(board, color) function"
+        )
 
     return module.get_move
 
@@ -123,9 +134,15 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
 
     # Randomly assign colors
     if random.random() < 0.5:
-        players = {"black": (player1_move, "player1"), "white": (player2_move, "player2")}
+        players = {
+            "black": (player1_move, "player1"),
+            "white": (player2_move, "player2"),
+        }
     else:
-        players = {"black": (player2_move, "player2"), "white": (player1_move, "player1")}
+        players = {
+            "black": (player2_move, "player2"),
+            "white": (player1_move, "player1"),
+        }
 
     game = GomokuGame(board_size=board_size)
 
@@ -143,7 +160,11 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
                 # Invalid move format - other player wins
                 other_color = "white" if game.current_player == "black" else "black"
                 _, winner_name = players[other_color]
-                return {"winner": winner_name, "error": f"{player_name} returned invalid move format: {move}", "players": players}
+                return {
+                    "winner": winner_name,
+                    "error": f"{player_name} returned invalid move format: {move}",
+                    "players": players,
+                }
 
             x, y = int(move[0]), int(move[1])
 
@@ -151,7 +172,11 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
                 # Invalid move - other player wins
                 other_color = "white" if game.current_player == "black" else "black"
                 _, winner_name = players[other_color]
-                return {"winner": winner_name, "error": f"{player_name} made invalid move: ({x}, {y})", "players": players}
+                return {
+                    "winner": winner_name,
+                    "error": f"{player_name} made invalid move: ({x}, {y})",
+                    "players": players,
+                }
 
             move_count += 1
 
@@ -159,7 +184,11 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
             # Error in player code - other player wins
             other_color = "white" if game.current_player == "black" else "black"
             _, winner_name = players[other_color]
-            return {"winner": winner_name, "error": f"{player_name} raised exception: {e}", "players": players}
+            return {
+                "winner": winner_name,
+                "error": f"{player_name} raised exception: {e}",
+                "players": players,
+            }
 
     if game.winner:
         _, winner_name = players[game.winner]
@@ -168,43 +197,64 @@ def run_game(player1_path: str, player2_path: str, board_size: int = 15) -> dict
         return {"winner": "draw", "history": game.history, "players": players}
 
 
-def write_game_log(game_num: int, result: dict, players: dict, player1_path: str, player2_path: str, output_dir: str = "."):
+def write_game_log(
+    game_num: int,
+    result: dict,
+    players: dict,
+    player1_path: str,
+    player2_path: str,
+    output_dir: str = ".",
+):
     """Write a detailed log file for a single game in JSON format."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
     json_filename = os.path.join(output_dir, f"log-{timestamp}.json")
-    
+
     # Write JSON log for visualizer
     json_data = {
         "game_number": game_num,
-        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "board_size": 15,
         "players": {
             "black": {
                 "name": players["black"][1],
-                "path": player1_path if players["black"][1] == "player1" else player2_path
+                "path": player1_path
+                if players["black"][1] == "player1"
+                else player2_path,
             },
             "white": {
                 "name": players["white"][1],
-                "path": player1_path if players["white"][1] == "player1" else player2_path
-            }
+                "path": player1_path
+                if players["white"][1] == "player1"
+                else player2_path,
+            },
         },
         "winner": result["winner"],
         "error": result.get("error"),
-        "moves": [{"move_number": i+1, "player": color, "x": x, "y": y} 
-                  for i, (color, x, y) in enumerate(result.get("history", []))]
+        "moves": [
+            {"move_number": i + 1, "player": color, "x": x, "y": y}
+            for i, (color, x, y) in enumerate(result.get("history", []))
+        ],
     }
-    
-    with open(json_filename, 'w') as f:
+
+    with open(json_filename, "w") as f:
         json.dump(json_data, f, indent=2)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Gomoku Game Engine')
-    parser.add_argument('player1', help='Path to player 1 code (main.py)')
-    parser.add_argument('player2', help='Path to player 2 code (main.py)')
-    parser.add_argument('-r', '--rounds', type=int, default=10, help='Number of rounds to play')
-    parser.add_argument('-b', '--board-size', type=int, default=15, help='Board size')
-    parser.add_argument('-o', '--output-dir', type=str, default=None, help='Output directory for log files')
+    parser = argparse.ArgumentParser(description="Gomoku Game Engine")
+    parser.add_argument("player1", help="Path to player 1 code (main.py)")
+    parser.add_argument("player2", help="Path to player 2 code (main.py)")
+    parser.add_argument(
+        "-r", "--rounds", type=int, default=10, help="Number of rounds to play"
+    )
+    parser.add_argument("-b", "--board-size", type=int, default=15, help="Board size")
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for log files",
+    )
     args = parser.parse_args()
 
     scores = {"player1": 0, "player2": 0, "draw": 0}
@@ -218,15 +268,22 @@ def main():
         result = run_game(args.player1, args.player2, args.board_size)
         winner = result["winner"]
         scores[winner] = scores.get(winner, 0) + 1
-        
+
         # Write detailed log for this game
         if args.output_dir and "players" in result:
-            write_game_log(i + 1, result, result["players"], args.player1, args.player2, args.output_dir)
+            write_game_log(
+                i + 1,
+                result,
+                result["players"],
+                args.player1,
+                args.player2,
+                args.output_dir,
+            )
 
         if "error" in result:
-            print(f"Game {i+1}: {winner} wins (error: {result['error']})")
+            print(f"Game {i + 1}: {winner} wins (error: {result['error']})")
         else:
-            print(f"Game {i+1}: {winner} wins")
+            print(f"Game {i + 1}: {winner} wins")
 
     print()
     print("FINAL_RESULTS")
@@ -238,5 +295,5 @@ def main():
     print(f"Draws: {scores['draw']}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

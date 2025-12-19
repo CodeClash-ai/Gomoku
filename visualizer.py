@@ -718,71 +718,77 @@ HTML_TEMPLATE = """
 """
 
 
-@app.route('/')
+@app.route("/")
 def index():
     """Serve the main visualizer page."""
     return render_template_string(HTML_TEMPLATE)
 
 
-@app.route('/api/games')
+@app.route("/api/games")
 def get_games():
     """Get list of available game logs."""
     games = []
     logs_path = Path(LOGS_DIR)
-    
+
     if not logs_path.exists():
         return jsonify([])
-    
-    for json_file in sorted(logs_path.glob('*.json'), reverse=True):
+
+    for json_file in sorted(logs_path.glob("*.json"), reverse=True):
         try:
-            with open(json_file, 'r') as f:
+            with open(json_file, "r") as f:
                 data = json.load(f)
-                games.append({
-                    'filename': json_file.name,
-                    'game_number': data.get('game_number', '?'),
-                    'timestamp': data.get('timestamp', 'Unknown'),
-                    'moves': len(data.get('moves', []))
-                })
+                games.append(
+                    {
+                        "filename": json_file.name,
+                        "game_number": data.get("game_number", "?"),
+                        "timestamp": data.get("timestamp", "Unknown"),
+                        "moves": len(data.get("moves", [])),
+                    }
+                )
         except Exception as e:
             print(f"Error reading {json_file}: {e}")
-    
+
     return jsonify(games)
 
 
-@app.route('/api/game/<filename>')
+@app.route("/api/game/<filename>")
 def get_game(filename):
     """Get a specific game log."""
     # Security check: only allow JSON files from logs directory
-    if not filename.endswith('.json') or '/' in filename or '\\' in filename:
-        return jsonify({'error': 'Invalid filename'}), 400
-    
+    if not filename.endswith(".json") or "/" in filename or "\\" in filename:
+        return jsonify({"error": "Invalid filename"}), 400
+
     file_path = Path(LOGS_DIR) / filename
-    
+
     if not file_path.exists():
-        return jsonify({'error': 'File not found'}), 404
-    
+        return jsonify({"error": "File not found"}), 404
+
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             data = json.load(f)
         return jsonify(data)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 def main():
     """Run the visualizer server."""
     global LOGS_DIR
-    
-    parser = argparse.ArgumentParser(description='Gomoku Game Visualizer')
-    parser.add_argument('--port', type=int, default=5000, help='Port to run the server on')
-    parser.add_argument('--logs-dir', type=str, default='logs', help='Directory containing game logs')
+
+    parser = argparse.ArgumentParser(description="Gomoku Game Visualizer")
+    parser.add_argument(
+        "--port", type=int, default=5000, help="Port to run the server on"
+    )
+    parser.add_argument(
+        "--logs-dir", type=str, default="logs", help="Directory containing game logs"
+    )
     args = parser.parse_args()
-    
+
     LOGS_DIR = args.logs_dir
-    
-    print(f"\n{'='*60}")
+
+    print(f"\n{'=' * 60}")
     print("🎮 Gomoku Game Visualizer")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"\n📁 Logs directory: {os.path.abspath(LOGS_DIR)}")
     print(f"🌐 Server running at: http://localhost:{args.port}")
     print("\n💡 Keyboard shortcuts:")
@@ -790,10 +796,10 @@ def main():
     print("   Space: Play/Pause")
     print("   Home/End: First/Last move")
     print("   R: Reset to start")
-    print(f"\n{'='*60}\n")
-    
-    app.run(debug=True, port=args.port, host='0.0.0.0')
+    print(f"\n{'=' * 60}\n")
+
+    app.run(debug=True, port=args.port, host="0.0.0.0")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

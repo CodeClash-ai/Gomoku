@@ -41,7 +41,9 @@ def get_move(board: list, color: str) -> tuple:
     if board[center][center] == 0:
         return (center, center)
 
-    empty = [(x, y) for x in range(board_size) for y in range(board_size) if board[x][y] == 0]
+    empty = [
+        (x, y) for x in range(board_size) for y in range(board_size) if board[x][y] == 0
+    ]
     return random.choice(empty) if empty else (0, 0)
 
 
